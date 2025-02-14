@@ -142,6 +142,17 @@ class YsPlay {
     });
   }
 
+  /// 开始直播
+  ///
+  /// 其中`url`必传,
+  static Future<bool> startRealPlayWithUrl({
+    required String url,
+  }) async {
+    return await _channel.invokeMethod("startRealPlay", {
+      'url': url,
+    });
+  }
+
   /// 停止直播
   static Future<bool> stopRealPlay() async {
     await _channel.invokeMethod("stopRealPlay");

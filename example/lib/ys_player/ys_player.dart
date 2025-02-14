@@ -10,6 +10,7 @@ import 'package:ys_play_example/ys_player/ys_player_portrait.dart';
 import '../main.dart';
 
 class YsPlayer extends StatefulWidget {
+  final String? url;
   final String deviceSerial;
   final String verifyCode;
   final int cameraNo;
@@ -17,6 +18,7 @@ class YsPlayer extends StatefulWidget {
   final Function(bool)? showOtherUI;
   const YsPlayer({
     Key? key,
+    this.url,
     required this.deviceSerial,
     required this.verifyCode,
     this.cameraNo = 1,
@@ -29,6 +31,7 @@ class YsPlayer extends StatefulWidget {
 }
 
 class YsPlayerState extends State<YsPlayer> {
+  late String url;
   late String deviceSerial;
   late String verifyCode;
   late int cameraNo;
@@ -113,6 +116,7 @@ class YsPlayerState extends State<YsPlayer> {
 
   ///初始化参数
   void initParams() {
+    url = widget.url ?? '';
     deviceSerial = widget.deviceSerial;
     verifyCode = widget.verifyCode;
     cameraNo = widget.cameraNo;
@@ -163,11 +167,17 @@ class YsPlayerState extends State<YsPlayer> {
       );
     } else if (mediaType == YsMediaType.real) {
       // 直播
-      return await YsPlay.startRealPlay(
-        deviceSerial: deviceSerial,
-        verifyCode: verifyCode,
-        cameraNo: cameraNo,
-      );
+      if (url.isNotEmpty) {
+        return await YsPlay.startRealPlayWithUrl(
+          url: url,
+        );
+      } else {
+        return await YsPlay.startRealPlay(
+          deviceSerial: deviceSerial,
+          verifyCode: verifyCode,
+          cameraNo: cameraNo,
+        );
+      }
     } else {
       return false;
     }

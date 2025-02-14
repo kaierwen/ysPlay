@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.view.TextureView;
 import android.widget.Toast;
 
@@ -117,6 +118,7 @@ public class YsPlayPlugin implements FlutterPlugin, MethodChannel.MethodCallHand
                     ezPlayer = null;
                 }
                 //flutter端的传参
+                String url = call.argument("url");
                 String deviceSerial = call.argument("deviceSerial");
                 String verifyCode = call.argument("verifyCode");
                 Integer cameraNo = call.argument("cameraNo");
@@ -124,7 +126,11 @@ public class YsPlayPlugin implements FlutterPlugin, MethodChannel.MethodCallHand
                 Long endTime = call.argument("endTime");
 
                 //初始化播放器
-                ezPlayer = initEzPlayer(deviceSerial,verifyCode,cameraNo);
+                if (TextUtils.isEmpty(url)) {
+                    ezPlayer = initEzPlayer(deviceSerial,verifyCode,cameraNo);
+                } else {
+                    ezPlayer = createPlayerWithUrl(url);
+                }
 
                 if(startTime != null && endTime != null){
                     final Calendar startCalendar = Calendar.getInstance();
@@ -177,12 +183,17 @@ public class YsPlayPlugin implements FlutterPlugin, MethodChannel.MethodCallHand
                     ezPlayer = null;
                 }
                 //flutter端的传参
+                url = call.argument("url");
                 deviceSerial = call.argument("deviceSerial");
                 verifyCode = call.argument("verifyCode");
                 cameraNo = call.argument("cameraNo");
 
-                //注册播放器
-                ezPlayer = initEzPlayer(deviceSerial,verifyCode,cameraNo);
+                //初始化播放器
+                if (TextUtils.isEmpty(url)) {
+                    ezPlayer = initEzPlayer(deviceSerial,verifyCode,cameraNo);
+                } else {
+                    ezPlayer = createPlayerWithUrl(url);
+                }
 
                 boolean realResult = ezPlayer.startRealPlay();
                 LogUtils.d("开始直播"+(realResult?"成功":"失败"));
@@ -476,7 +487,17 @@ public class YsPlayPlugin implements FlutterPlugin, MethodChannel.MethodCallHand
         if(verifyCode != null){
             player.setPlayVerifyCode(verifyCode);
         }
-        LogUtils.d("播放器初始化成功");
+        LogUtils.d("initEzPlayer() 播放器初始化成功");
+        return player;
+    }
+
+    private EZPlayer createPlayerWithUrl(final String url) {
+        EZPlayer player = EZOpenSDK.getInstance().createPlayerWithUrl(url);
+        // 设置Handler, 该handler将被用于从播放器向handler传递消息
+        player.setHandler(new YsPlayViewHandler(ysResultListener));
+        // 设置播放器的显示Surface
+        player.setSurfaceEx(textureView.getSurfaceTexture());
+        LogUtils.d("createPlayerWithUrl() 播放器初始化成功");
         return player;
     }
 
