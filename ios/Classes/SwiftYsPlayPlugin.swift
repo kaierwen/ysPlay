@@ -163,20 +163,29 @@ public class SwiftYsPlayPlugin: NSObject, FlutterPlugin,EZPlayerDelegate{
             }
             
             let data:Optional<Dictionary> = call.arguments as? Dictionary<String, Any>
+            let url = data?["url"] as? String; //直播地址
             let deviceSerial = data?["deviceSerial"] as? String //设备序列号
             let cameraNo = data?["cameraNo"] as? Int
             let verifyCode = data?["verifyCode"] as? String
             
-            if deviceSerial == nil {
-                result(false)
-                return
+            if ( url != nil && !url!.isEmpty) {
+                
+                print("直播地址：\(url ?? "Null")")
+                ezPlayer = createEzPlayer(url: url!);
+                
+            } else {
+                
+                if deviceSerial == nil {
+                    result(false)
+                    return
+                }
+                // 注册播放器
+                ezPlayer = createEzPlayer(deviceSerial: deviceSerial!, cameraNo: cameraNo, verifyCode: verifyCode)
             }
-            // 注册播放器
-            ezPlayer = createEzPlayer(deviceSerial: deviceSerial!, cameraNo: cameraNo, verifyCode: verifyCode)
-
             let isSuccess = ezPlayer!.startRealPlay()
             print("\(TAG) 开始直播 \(isSuccess ? "成功" : "失败")")
             result(isSuccess)
+            
         } else if call.method == "stopRealPlay" {
             /// 停止直播
             if ezPlayer == nil {
@@ -518,16 +527,22 @@ public class SwiftYsPlayPlugin: NSObject, FlutterPlugin,EZPlayerDelegate{
      * 根据videoLevel返回EZVideoLevelType
      */
     private func getVideoLevelType (videoLevel:Int) -> EZVideoLevelType {
-        var videolevelType:EZVideoLevelType = EZVideoLevelType.high
+        var videolevelType:EZVideoLevelType = EZVideoLevelType.level4K
         switch videoLevel {
         case 0:
-            videolevelType = EZVideoLevelType.low
+            videolevelType = EZVideoLevelType.levelLow
         case 1:
-            videolevelType = EZVideoLevelType.middle
+            videolevelType = EZVideoLevelType.levelMiddle
         case 2:
-            videolevelType = EZVideoLevelType.high
+            videolevelType = EZVideoLevelType.levelHigh
         case 3:
-            videolevelType = EZVideoLevelType.superHigh
+            videolevelType = EZVideoLevelType.levelSuperHigh
+        case 4:
+            videolevelType = EZVideoLevelType.levelExtremeHigh
+        case 5:
+            videolevelType = EZVideoLevelType.level3K
+        case 6:
+            videolevelType = EZVideoLevelType.level4K
         default:
             break
         }
@@ -544,6 +559,15 @@ public class SwiftYsPlayPlugin: NSObject, FlutterPlugin,EZPlayerDelegate{
         player.setPlayerView(self.playerView)
         print("\(TAG)注册播放器成功")
         return player
+    }
+    
+    /// 注册播放器 -- url
+    private func createEzPlayer(url:String) -> EZPlayer{
+        let player = EZOpenSDK.createPlayer(withUrl: url);
+        player.delegate = self;
+        player.setPlayerView(self.playerView);
+        print("\(TAG)注册播放器成功-url\(url)")
+        return player;
     }
     
     /**
