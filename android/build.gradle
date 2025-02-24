@@ -26,7 +26,7 @@ android {
         namespace 'com.example.ys_play'
     }
     
-    compileSdkVersion 29
+    compileSdkVersion 34
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
